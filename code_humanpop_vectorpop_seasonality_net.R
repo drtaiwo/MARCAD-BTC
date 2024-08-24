@@ -13,17 +13,20 @@ seasonal_modulation <- function(time, amplitude, phase_shift) {
 }
 
 # Function to calculate the effective reduction in transmission due to mosquito nets
-# N_net: Number of mosquito nets distributed
-# u_net: Usage rate of distributed nets (0-1)
-# k_net: Effectiveness of nets (0-1, where 1 is 100% effective)
-# Nh: Total human population
-calculate_net_effect <- function(N_net, u_net, k_net, Nh) {
-  net_coverage = (N_net / Nh) * u_net
-  effective_reduction = net_coverage * k_net
+calculate_net_effect <- function(N_net, u_net, k_net, N_h, time, net_start_time, use_net_intervention) {
+  
+  # Check if the current time is after the net intervention start time and if the intervention is in use
+  # (time >= net_start_time) will be 1 if the current time is greater than or equal to net_start_time, otherwise 0
+  # use_net_intervention is a boolean (TRUE/FALSE), which will be coerced to 1 or 0 in the multiplication
+  # Only if both conditions are TRUE (i.e., both 1), the net effect will be calculated
+  # If any condition is FALSE (i.e., 0), effective_reduction will be 0
+  effective_reduction <- (time >= net_start_time) * use_net_intervention * ((N_net / N_h) * u_net * k_net)
+  
+  # Return the calculated effective reduction
   return(effective_reduction)
 }
 
-# Define the system of differential equations (SEIRV model)
+# Define the system of differential equations (SEIR model)
 # time: Current time in the simulation
 # state: Current state of the system (populations in each compartment)
 # parameters: Parameters of the model
@@ -31,11 +34,9 @@ disease_model <- function(time, state, parameters) {
   with(as.list(c(state, parameters)), {
     
     # Calculate the reduction in transmission due to nets if intervention is active
-    if (time >= net_start_time && use_net_intervention) {
-      effective_reduction <- calculate_net_effect(N_net, u_net, k_net, N_h)
-    } else {
-      effective_reduction <- 0
-    }
+    
+    effective_reduction <- calculate_net_effect(N_net, u_net, k_net, N_h, time, net_start_time, use_net_intervention)
+    
     
     # Calculate seasonal modulation of transmission
     seas <- seasonal_modulation(time, amplitude, phase_shift)
@@ -70,7 +71,7 @@ disease_model <- function(time, state, parameters) {
 # Initial conditions
 initial_state <- c(
   S_h = 9990, E_h = 6, I_s = 1, I_c = 1, I_a = 1, I_n = 1, R = 0, T_s = 0, T_c = 0,
-  S_v = 500, E_v = 10, I_v = 5
+  S_v = 5000, E_v = 10, I_v = 5
 )
 
 # Parameters
