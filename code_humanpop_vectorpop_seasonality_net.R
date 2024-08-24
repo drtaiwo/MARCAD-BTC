@@ -9,7 +9,7 @@ library(reshape2)  # For reshaping data
 # amplitude: Amplitude of the seasonal variation
 # phase_shift: Shift in the phase of the seasonal cycle
 seasonal_modulation <- function(time, amplitude, phase_shift) {
-  return(1 + amplitude * sin(2 * pi * (time - phase_shift) / 365))
+  return(1 + amplitude * cos(2 * pi * (time - phase_shift) / 365))
 }
 
 # Function to calculate the effective reduction in transmission due to mosquito nets
@@ -111,7 +111,7 @@ parameters <- c(
   
   psi = 0.2,            # Probability of transmission per contact between humans and vectors.
   
-  amplitude = 0.3,      # Amplitude of the seasonal variation in transmission.
+  amplitude = 0.8,      # Amplitude of the seasonal variation in transmission.
   
   phase_shift = 180,    # Phase shift of the seasonal variation in transmission, in days.
   
